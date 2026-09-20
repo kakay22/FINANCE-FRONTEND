@@ -1,0 +1,28 @@
+FINANCE_FRONTEND/
+└── src/
+    ├── api/
+    │   └── axios.js
+    │
+    ├── components/
+    │   ├── BottomNav.jsx
+    │   ├── Loading.jsx
+    │   └── ProtectedRoute.jsx
+    │
+    ├── layouts/
+    │   └── AppLayout.jsx
+    │
+    ├── pages/
+    │   ├── auth/
+    │   │   ├── Login.jsx
+    │   │   └── Register.jsx
+    │   │
+    │   ├── Dashboard.jsx
+    │   ├── Transactions.jsx
+    │   ├── AddTransaction.jsx
+    │   ├── Borrowings.jsx
+    │   ├── Statistics.jsx
+    │   └── Settings.jsx
+    │
+    ├── App.jsx
+    ├── index.css
+    └── main.jsx
