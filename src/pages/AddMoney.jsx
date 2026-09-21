@@ -24,6 +24,30 @@ function getToday() {
     return `${year}-${month}-${day}`;
 }
 
+function formatMoneyInput(value) {
+    if (value === "") return "";
+
+    // Remove commas and anything except numbers and decimal point
+    const clean = value.replace(/,/g, "").replace(/[^\d.]/g, "");
+
+    // Allow only one decimal point
+    const parts = clean.split(".");
+    const integerPart = parts[0] || "";
+    const decimalPart = parts[1];
+
+    // Add commas
+    const formattedInteger = integerPart.replace(
+        /\B(?=(\d{3})+(?!\d))/g,
+        ","
+    );
+
+    if (decimalPart !== undefined) {
+        return `${formattedInteger}.${decimalPart.slice(0, 2)}`;
+    }
+
+    return formattedInteger;
+}
+
 export default function AddMoney() {
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
@@ -39,11 +63,20 @@ export default function AddMoney() {
     const [proofFile, setProofFile] = useState(null);
     const [submitting, setSubmitting] = useState(false);
 
-    const handleChange = (event) => {
-        const { name, value } = event.target;
+    const handleChange = (e) => {
+        const { name, value } = e.target;
 
-        setForm((current) => ({
-            ...current,
+        if (name === "amount") {
+            setForm((prev) => ({
+                ...prev,
+                amount: formatMoneyInput(value),
+            }));
+
+            return;
+        }
+
+        setForm((prev) => ({
+            ...prev,
             [name]: value,
         }));
     };
@@ -243,15 +276,13 @@ export default function AddMoney() {
                             </span>
 
                             <input
-                                type="number"
+                                type="text"
                                 name="amount"
                                 value={form.amount}
                                 onChange={handleChange}
                                 placeholder="0.00"
-                                min="0.01"
-                                step="0.01"
                                 inputMode="decimal"
-                                className="h-20 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-3xl font-semibold tracking-tight text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100"
+                                className="h-20 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-3xl font-bold tracking-tight text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100"
                                 autoFocus
                             />
                         </div>
@@ -415,7 +446,7 @@ export default function AddMoney() {
                                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-slate-500">
                                     <span className="material-symbols-rounded">
                                         {proofFile.type ===
-                                        "application/pdf"
+                                            "application/pdf"
                                             ? "picture_as_pdf"
                                             : "image"}
                                     </span>
@@ -474,8 +505,8 @@ export default function AddMoney() {
                                     Add{" "}
                                     {form.amount
                                         ? formatCurrency(
-                                              form.amount
-                                          )
+                                            form.amount
+                                        )
                                         : "Money"}
                                 </>
                             )}
