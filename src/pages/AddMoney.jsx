@@ -125,9 +125,14 @@ export default function AddMoney() {
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        const amount = Number(form.amount);
+        // Remove display formatting before sending to backend
+        const rawAmount = form.amount
+            .replace(/,/g, "")
+            .trim();
 
-        if (!form.amount || Number.isNaN(amount)) {
+        const amount = Number(rawAmount);
+
+        if (!rawAmount || Number.isNaN(amount)) {
             toast.error("Please enter an amount.");
             return;
         }
@@ -145,24 +150,23 @@ export default function AddMoney() {
         try {
             setSubmitting(true);
 
-            /*
-             * The backend automatically determines:
-             * - the authenticated user
-             * - the user's active shared savings goal
-             *
-             * Therefore we intentionally do NOT send goal.
-             */
             const transactionResponse = await api.post(
                 "savings/transactions/",
                 {
                     transaction_type:
                         form.transaction_type,
-                    amount: form.amount,
+
+                    // Send the clean numeric value
+                    amount: amount,
+
                     transaction_date:
                         form.transaction_date,
+
                     bank_reference:
                         form.bank_reference.trim(),
-                    notes: form.notes.trim(),
+
+                    notes:
+                        form.notes.trim(),
                 }
             );
 

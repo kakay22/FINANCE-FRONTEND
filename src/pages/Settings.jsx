@@ -437,7 +437,7 @@ export default function Settings() {
                         type="button"
                         aria-label="Close avatar preview"
                         onClick={() => setShowAvatar(false)}
-                        className="absolute right-4 top-4 z-[210] flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20 active:scale-95"
+                        className="absolute right-4 top-4 z-210 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20 active:scale-95"
                     >
                         <span className="material-symbols-rounded text-[24px]">
                             close
@@ -445,7 +445,7 @@ export default function Settings() {
                     </button>
 
                     {/* Avatar */}
-                    <div className="pointer-events-none relative z-[205] flex h-full w-full items-center justify-center p-6">
+                    <div className="pointer-events-none relative z-205 flex h-full w-full items-center justify-center p-6">
                         <div className="scale-[2.5] sm:scale-[3.5]">
                             <ProfileAvatar size="lg" showBorder />
                         </div>

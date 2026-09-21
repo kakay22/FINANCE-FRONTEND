@@ -2,30 +2,95 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 
 export default function ProfileAvatar({
+    user = null,
     size = "md",
     className = "",
     showBorder = false,
 }) {
-    const [profile, setProfile] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [profile, setProfile] = useState(user);
+    const [loading, setLoading] = useState(!user);
+    const [imageError, setImageError] = useState(false);
 
     useEffect(() => {
         let mounted = true;
 
+        setImageError(false);
+
         const loadProfile = async () => {
             try {
-                const response = await api.get(
-                    "auth/profile/"
-                );
+                /*
+                 * No user supplied:
+                 * Load the currently logged-in user's profile.
+                 */
+                if (!user) {
+                    const response = await api.get(
+                        "auth/profile/"
+                    );
 
-                if (mounted) {
-                    setProfile(response.data);
+                    if (mounted) {
+                        setProfile(response.data);
+                    }
+
+                    return;
+                }
+
+                /*
+                 * If the supplied user already has a profile picture,
+                 * use it immediately.
+                 */
+                if (
+                    user.profile_picture ||
+                    user.avatar ||
+                    user.photo
+                ) {
+                    if (mounted) {
+                        setProfile(user);
+                    }
+
+                    return;
+                }
+
+                /*
+                 * We only have something like:
+                 *
+                 * {
+                 *     id: 1,
+                 *     username: "kyle"
+                 * }
+                 *
+                 * Fetch the complete public profile.
+                 */
+                if (user.id) {
+                    const response = await api.get(
+                        `auth/users/${user.id}/`
+                    );
+
+                    console.log(
+                        "PUBLIC PROFILE RESPONSE:",
+                        response.data
+                    );
+
+                    if (mounted) {
+                        setProfile(response.data);
+                    }
+                } else {
+                    if (mounted) {
+                        setProfile(user);
+                    }
                 }
             } catch (error) {
                 console.error(
                     "Failed to load profile avatar:",
                     error
                 );
+
+                /*
+                 * Keep the supplied user so the avatar can
+                 * still show the user's initial.
+                 */
+                if (mounted) {
+                    setProfile(user);
+                }
             } finally {
                 if (mounted) {
                     setLoading(false);
@@ -33,15 +98,18 @@ export default function ProfileAvatar({
             }
         };
 
+        setLoading(true);
         loadProfile();
 
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [user]);
 
     const getMediaUrl = (url) => {
-        if (!url) return null;
+        if (!url) {
+            return null;
+        }
 
         if (
             url.startsWith("http://") ||
@@ -51,21 +119,35 @@ export default function ProfileAvatar({
             return url;
         }
 
-        const baseURL =
-            api.defaults.baseURL ||
-            "http://127.0.0.1:8000/api/";
-
         try {
+            const baseURL =
+                api.defaults.baseURL ||
+                "http://127.0.0.1:8000/api/";
+
             const apiURL = new URL(
                 baseURL,
                 window.location.origin
             );
 
-            return new URL(
-                url,
-                apiURL.origin
-            ).href;
-        } catch {
+            if (url.startsWith("/")) {
+                return `${apiURL.origin}${url}`;
+            }
+
+            const backendRoot =
+                apiURL.pathname
+                    .replace(/\/api\/?$/, "")
+                    .replace(/\/$/, "");
+
+            return `${apiURL.origin}${backendRoot}/${url.replace(
+                /^\/+/,
+                ""
+            )}`;
+        } catch (error) {
+            console.error(
+                "Failed to build profile picture URL:",
+                error
+            );
+
             return url;
         }
     };
@@ -79,23 +161,43 @@ export default function ProfileAvatar({
     };
 
     const sizeClass =
-        sizeClasses[size] ||
-        sizeClasses.md;
+        sizeClasses[size] || sizeClasses.md;
 
     const username =
-        profile?.username || "User";
+        profile?.display_name ||
+        profile?.username ||
+        profile?.name ||
+        profile?.full_name ||
+        "User";
 
     const initial =
         username.charAt(0).toUpperCase();
 
+    const rawImageUrl =
+        profile?.profile_picture ||
+        profile?.avatar ||
+        profile?.photo ||
+        null;
+
     const imageUrl = getMediaUrl(
-        profile?.profile_picture
+        rawImageUrl
     );
 
     if (loading) {
         return (
             <div
-                className={`${sizeClass} ${className} animate-pulse rounded-full bg-slate-200`}
+                className={`
+                    ${sizeClass}
+                    ${className}
+                    flex
+                    shrink-0
+                    items-center
+                    justify-center
+                    overflow-hidden
+                    rounded-full
+                    bg-slate-200
+                    animate-pulse
+                `}
             />
         );
     }
@@ -105,26 +207,30 @@ export default function ProfileAvatar({
             className={`
                 ${sizeClass}
                 ${className}
+                flex
+                shrink-0
+                items-center
+                justify-center
                 overflow-hidden
                 rounded-full
                 bg-slate-900
-                flex
-                items-center
-                justify-center
                 font-semibold
                 text-white
-                shrink-0
                 ${showBorder ? "ring-2 ring-white" : ""}
             `}
         >
-            {imageUrl ? (
+            {imageUrl && !imageError ? (
                 <img
                     src={imageUrl}
                     alt={`${username}'s profile`}
                     className="h-full w-full object-cover"
-                    onError={(event) => {
-                        event.currentTarget.style.display =
-                            "none";
+                    onError={() => {
+                        console.error(
+                            "Failed to load profile image:",
+                            imageUrl
+                        );
+
+                        setImageError(true);
                     }}
                 />
             ) : (

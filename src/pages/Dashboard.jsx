@@ -20,14 +20,11 @@ function formatDate(value) {
         return "—";
     }
 
-    return new Date(value).toLocaleDateString(
-        "en-PH",
-        {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-        }
-    );
+    return new Date(value).toLocaleDateString("en-PH", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
 }
 
 function ProgressRing({ percentage }) {
@@ -120,14 +117,9 @@ function StatCard({
 export default function Dashboard() {
     const navigate = useNavigate();
 
-    const [dashboard, setDashboard] =
-        useState(null);
-
-    const [loading, setLoading] =
-        useState(true);
-
-    const [error, setError] =
-        useState("");
+    const [dashboard, setDashboard] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     const loadDashboard = async () => {
         try {
@@ -203,8 +195,8 @@ export default function Dashboard() {
 
     const totalContributions = Number(
         dashboard.total_contributions ??
-        dashboard.total_saved ??
-        0
+            dashboard.total_saved ??
+            0
     );
 
     const totalBorrowed = Number(
@@ -217,8 +209,8 @@ export default function Dashboard() {
 
     const availableSavings = Number(
         dashboard.available_savings ??
-        dashboard.total_saved ??
-        0
+            dashboard.total_saved ??
+            0
     );
 
     const remaining = Number(
@@ -226,24 +218,31 @@ export default function Dashboard() {
     );
 
     const target = Number(
-        goal.target_amount || 0
+        goal?.target_amount || 0
     );
 
     const progress = Number(
         dashboard.progress_percentage || 0
     );
 
+    const isGoalCompleted =
+        progress >= 100 || remaining <= 0;
+
     const averageMonthly = Number(
         dashboard.average_monthly_savings || 0
     );
 
     const estimatedMonths =
-        dashboard.estimated_months_remaining !==
-            null
+        dashboard.estimated_months_remaining !== null
             ? Number(
-                dashboard.estimated_months_remaining
-            )
+                  dashboard.estimated_months_remaining
+              )
             : null;
+
+    const goalMembers = goal?.members || [];
+
+    const contributions =
+        dashboard.contributions || [];
 
     return (
         <div className="min-h-screen">
@@ -257,14 +256,18 @@ export default function Dashboard() {
                             </p>
 
                             <h1 className="mt-1 truncate text-2xl font-bold tracking-tight text-gray-950">
-                                {goal.name ||
-                                    "Housing Fund"}
+                                {goal?.name ||
+                                    "My Goal"}
                             </h1>
                         </div>
 
                         <button
                             type="button"
-                            onClick={() => navigate("/settings")}
+                            onClick={() =>
+                                navigate(
+                                    "/settings"
+                                )
+                            }
                             className="rounded-full"
                             aria-label="Open profile"
                         >
@@ -280,57 +283,203 @@ export default function Dashboard() {
             <main className="space-y-4 px-4 py-4">
                 {/* Housing goal */}
                 <section className="rounded-3xl bg-gray-950 p-5 text-white shadow-sm">
-                    <div className="flex items-center gap-5">
-                        <ProgressRing
-                            percentage={progress}
-                        />
+                    {isGoalCompleted ? (
+                        <>
+                            {/* Completed goal */}
+                            <div className="flex flex-col items-center text-center">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
+                                    <span className="material-symbols-rounded text-[34px]">
+                                        celebration
+                                    </span>
+                                </div>
 
-                        <div className="min-w-0 flex-1">
-                            <p className="text-sm text-gray-400">
-                                Available savings
-                            </p>
+                                <p className="mt-4 text-xs font-medium uppercase tracking-wider text-gray-400">
+                                    Goal completed
+                                </p>
 
-                            <p className="mt-1 text-2xl font-bold tracking-tight">
-                                {formatCurrency(
-                                    availableSavings
+                                <h2 className="mt-1 text-2xl font-bold tracking-tight">
+                                    Congratulations! 🎉
+                                </h2>
+
+                                <p className="mt-2 max-w-sm text-sm leading-6 text-gray-400">
+                                    Your shared goal{" "}
+                                    <span className="font-semibold text-white">
+                                        {goal?.name ||
+                                            "housing goal"}
+                                    </span>{" "}
+                                    has reached its target.
+                                </p>
+
+                                {/* ALL SHARED GOAL MEMBERS */}
+                                {goalMembers.length > 0 && (
+                                    <>
+                                        <div className="mt-6 flex items-center justify-center">
+                                            {goalMembers.map(
+                                                (
+                                                    member,
+                                                    index
+                                                ) => (
+                                                    <div
+                                                        key={
+                                                            member.id
+                                                        }
+                                                        className={`relative ${
+                                                            index >
+                                                            0
+                                                                ? "-ml-3"
+                                                                : ""
+                                                        }`}
+                                                    >
+                                                        <div className="rounded-full bg-gray-950 p-1">
+                                                            <ProfileAvatar
+                                                                size="lg"
+                                                                showBorder
+                                                                user={
+                                                                    member
+                                                                }
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
+
+                                        <p className="mt-3 text-xs text-gray-400">
+                                            {goalMembers
+                                                .map(
+                                                    (
+                                                        member
+                                                    ) =>
+                                                        member.display_name ||
+                                                        member.username
+                                                )
+                                                .join(
+                                                    " & "
+                                                )}
+                                        </p>
+                                    </>
                                 )}
-                            </p>
 
-                            <p className="mt-1 text-xs text-gray-400">
-                                of{" "}
-                                {formatCurrency(
-                                    target
-                                )}{" "}
-                                housing goal
-                            </p>
+                                <div className="mt-5 w-full rounded-2xl bg-white/10 p-4">
+                                    <p className="text-xs text-gray-400">
+                                        Goal amount
+                                    </p>
 
-                            <div className="mt-4">
-                                <p className="text-xs text-gray-400">
-                                    Still needed
-                                </p>
+                                    <p className="mt-1 text-2xl font-bold">
+                                        {formatCurrency(
+                                            target
+                                        )}
+                                    </p>
 
-                                <p className="mt-0.5 text-sm font-semibold text-white">
-                                    {formatCurrency(
-                                        remaining
-                                    )}
-                                </p>
+                                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+                                        <div className="h-full w-full rounded-full bg-white" />
+                                    </div>
+
+                                    <div className="mt-2 flex items-center justify-between text-xs">
+                                        <span className="text-gray-400">
+                                            Fully funded
+                                        </span>
+
+                                        <span className="font-semibold text-white">
+                                            100%
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <button
-                        type="button"
-                        onClick={() =>
-                            navigate("/add-money")
-                        }
-                        className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3.5 text-sm font-semibold text-gray-950 transition active:scale-[0.98]"
-                    >
-                        <span className="material-symbols-rounded text-[20px]">
-                            add
-                        </span>
+                            {/* Create another goal */}
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    navigate(
+                                        "/goals/create"
+                                    )
+                                }
+                                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3.5 text-sm font-semibold text-gray-950 transition active:scale-[0.98]"
+                            >
+                                <span className="material-symbols-rounded text-[20px]">
+                                    add
+                                </span>
 
-                        Add money
-                    </button>
+                                Create another goal
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    navigate(
+                                        "/goals"
+                                    )
+                                }
+                                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-gray-400 transition hover:text-white"
+                            >
+                                <span className="material-symbols-rounded text-[18px]">
+                                    history
+                                </span>
+
+                                View goal history
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            {/* Active goal */}
+                            <div className="flex items-center gap-5">
+                                <ProgressRing
+                                    percentage={
+                                        progress
+                                    }
+                                />
+
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm text-gray-400">
+                                        Available savings
+                                    </p>
+
+                                    <p className="mt-1 text-2xl font-bold tracking-tight">
+                                        {formatCurrency(
+                                            availableSavings
+                                        )}
+                                    </p>
+
+                                    <p className="mt-1 text-xs text-gray-400">
+                                        of{" "}
+                                        {formatCurrency(
+                                            target
+                                        )}{" "}
+                                        housing goal
+                                    </p>
+
+                                    <div className="mt-4">
+                                        <p className="text-xs text-gray-400">
+                                            Still needed
+                                        </p>
+
+                                        <p className="mt-0.5 text-sm font-semibold text-white">
+                                            {formatCurrency(
+                                                remaining
+                                            )}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    navigate(
+                                        "/add-money"
+                                    )
+                                }
+                                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3.5 text-sm font-semibold text-gray-950 transition active:scale-[0.98]"
+                            >
+                                <span className="material-symbols-rounded text-[20px]">
+                                    add
+                                </span>
+
+                                Add money
+                            </button>
+                        </>
+                    )}
                 </section>
 
                 {/* Savings breakdown */}
@@ -379,10 +528,10 @@ export default function Dashboard() {
                         label="Estimated time"
                         value={
                             estimatedMonths !==
-                                null
+                            null
                                 ? `${estimatedMonths.toFixed(
-                                    1
-                                )} months`
+                                      1
+                                  )} months`
                                 : "Not available"
                         }
                         description="At current pace"
@@ -465,22 +614,22 @@ export default function Dashboard() {
                     </div>
 
                     <div className="divide-y divide-gray-100">
-                        {dashboard.contributions
-                            ?.length > 0 ? (
-                            dashboard.contributions.map(
+                        {contributions.length >
+                        0 ? (
+                            contributions.map(
                                 (person) => {
                                     const amount =
                                         Number(
                                             person.amount ||
-                                            0
+                                                0
                                         );
 
                                     const percentage =
                                         totalContributions >
-                                            0
+                                        0
                                             ? (amount /
-                                                totalContributions) *
-                                            100
+                                                  totalContributions) *
+                                              100
                                             : 0;
 
                                     return (
@@ -493,9 +642,8 @@ export default function Dashboard() {
                                             <div className="flex items-center justify-between gap-3">
                                                 <div className="min-w-0">
                                                     <p className="truncate text-sm font-semibold text-gray-950">
-                                                        {
-                                                            person.username
-                                                        }
+                                                        {person.display_name ||
+                                                            person.username}
                                                     </p>
 
                                                     <p className="mt-0.5 text-xs text-gray-400">
@@ -566,7 +714,7 @@ export default function Dashboard() {
 
                     <div className="divide-y divide-gray-100">
                         {recentTransactions.length >
-                            0 ? (
+                        0 ? (
                             recentTransactions.map(
                                 (transaction) => (
                                     <button
@@ -584,7 +732,7 @@ export default function Dashboard() {
                                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100">
                                             <span className="material-symbols-rounded text-[20px] text-gray-700">
                                                 {transaction.transaction_type ===
-                                                    "TRANSFER"
+                                                "TRANSFER"
                                                     ? "swap_horiz"
                                                     : "payments"}
                                             </span>
@@ -667,13 +815,13 @@ export default function Dashboard() {
 
                             {outstandingBorrowings >
                                 0 && (
-                                    <p className="mt-2 text-sm font-semibold text-gray-950">
-                                        {formatCurrency(
-                                            outstandingBorrowings
-                                        )}{" "}
-                                        outstanding
-                                    </p>
-                                )}
+                                <p className="mt-2 text-sm font-semibold text-gray-950">
+                                    {formatCurrency(
+                                        outstandingBorrowings
+                                    )}{" "}
+                                    outstanding
+                                </p>
+                            )}
                         </div>
 
                         <button
