@@ -28,6 +28,8 @@ import Profile from "./pages/Profile";
 
 import Security from "./pages/Security";
 
+import CreateGoal from "./pages/CreateGoal";
+
 import Notifications from "./pages/Notifications";
 
 function Placeholder({ title }) {
@@ -152,6 +154,11 @@ export default function App() {
           <Route
             path="/notifications"
             element={<Notifications />}
+          />
+
+          <Route
+            path="/goals/create"
+            element={<CreateGoal />}
           />
 
         </Route>
