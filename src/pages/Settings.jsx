@@ -54,6 +54,8 @@ function SettingRow({
 export default function Settings() {
     const navigate = useNavigate();
 
+    const [showAvatar, setShowAvatar] = useState(false);
+
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showLogout, setShowLogout] = useState(false);
@@ -155,10 +157,17 @@ export default function Settings() {
                         </p>
 
                         <div className="mt-4 flex items-center gap-4">
-                            <ProfileAvatar
-                                size="lg"
-                                showBorder
-                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowAvatar(true)}
+                                className="shrink-0 rounded-full outline-none transition active:scale-95"
+                                aria-label="View profile avatar"
+                            >
+                                <ProfileAvatar
+                                    size="lg"
+                                    showBorder
+                                />
+                            </button>
 
                             <div className="min-w-0">
                                 <p className="truncate text-base font-semibold text-slate-900">
@@ -408,6 +417,37 @@ export default function Settings() {
                                     </>
                                 )}
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showAvatar && (
+                <div className="fixed inset-0 z-[200]">
+                    {/* Backdrop */}
+                    <button
+                        type="button"
+                        aria-label="Close profile avatar"
+                        onClick={() => setShowAvatar(false)}
+                        className="absolute inset-0 h-full w-full cursor-default bg-black/80 backdrop-blur-md"
+                    />
+
+                    {/* Close button */}
+                    <button
+                        type="button"
+                        aria-label="Close avatar preview"
+                        onClick={() => setShowAvatar(false)}
+                        className="absolute right-4 top-4 z-[210] flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20 active:scale-95"
+                    >
+                        <span className="material-symbols-rounded text-[24px]">
+                            close
+                        </span>
+                    </button>
+
+                    {/* Avatar */}
+                    <div className="pointer-events-none relative z-[205] flex h-full w-full items-center justify-center p-6">
+                        <div className="scale-[2.5] sm:scale-[3.5]">
+                            <ProfileAvatar size="lg" showBorder />
                         </div>
                     </div>
                 </div>
