@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useEffect, useState } from "react";
 
 import api from "../api/axios";
 
@@ -11,6 +11,49 @@ export default function CreateGoal() {
         name: "",
         target_amount: "",
     });
+
+    const [users, setUsers] = useState([]);
+    const [selectedMembers, setSelectedMembers] = useState([]);
+    const [loadingUsers, setLoadingUsers] = useState(true);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await api.get(
+                    "auth/users/"
+                );
+
+                setUsers(
+                    Array.isArray(response.data)
+                        ? response.data
+                        : []
+                );
+            } catch (error) {
+                console.error(
+                    "Failed to load users:",
+                    error
+                );
+
+                toast.error(
+                    "Failed to load available members."
+                );
+            } finally {
+                setLoadingUsers(false);
+            }
+        };
+
+        fetchUsers();
+    }, []);
+
+    const toggleMember = (userId) => {
+        setSelectedMembers((current) =>
+            current.includes(userId)
+                ? current.filter(
+                    (id) => id !== userId
+                )
+                : [...current, userId]
+        );
+    };
 
     const [loading, setLoading] = useState(false);
 
@@ -45,13 +88,14 @@ export default function CreateGoal() {
             const response = await api.post("savings/goal/", {
                 name,
                 target_amount: targetAmount.toFixed(2),
+                member_ids: selectedMembers,
             });
 
             toast.success("Savings goal created successfully.");
 
-            navigate(`/goals/${response.data.id}`);
+            navigate("/", { replace: true });
         } catch (error) {
-            console.error("Failed to create savings goal:", error);
+            console.error("Failed to create saviangs goal:", error);
 
             const detail =
                 error.response?.data?.detail ||
@@ -165,6 +209,87 @@ export default function CreateGoal() {
                             <p className="mt-1.5 text-xs text-gray-400">
                                 This is the total amount you want to save.
                             </p>
+                        </div>
+
+
+                        {/* Members */}
+                        <div>
+                            <div className="mb-2">
+                                <label className="block text-sm font-medium text-gray-800">
+                                    Members
+                                </label>
+
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Choose who will share this savings goal.
+                                    You will automatically be included.
+                                </p>
+                            </div>
+
+                            <div className="overflow-hidden rounded-xl border border-gray-200">
+                                {loadingUsers ? (
+                                    <div className="p-4 text-sm text-gray-500">
+                                        Loading members...
+                                    </div>
+                                ) : (
+                                    users.map((user) => {
+                                        const selected =
+                                            selectedMembers.includes(user.id);
+
+                                        return (
+                                            <button
+                                                key={user.id}
+                                                type="button"
+                                                onClick={() =>
+                                                    toggleMember(user.id)
+                                                }
+                                                className="
+                            flex w-full items-center
+                            justify-between border-b
+                            border-gray-100 px-4 py-3
+                            text-left last:border-b-0
+                            hover:bg-gray-50
+                        "
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div
+                                                        className="
+                                    flex h-10 w-10
+                                    items-center justify-center
+                                    rounded-full bg-gray-100
+                                    text-sm font-semibold
+                                    text-gray-700
+                                "
+                                                    >
+                                                        {user.username
+                                                            ?.charAt(0)
+                                                            .toUpperCase()}
+                                                    </div>
+
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-900">
+                                                            {user.username}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <span
+                                                    className={`
+                                material-symbols-outlined
+                                ${selected
+                                                            ? "text-gray-900"
+                                                            : "text-gray-300"
+                                                        }
+                            `}
+                                                >
+                                                    {selected
+                                                        ? "check_circle"
+                                                        : "radio_button_unchecked"}
+                                                </span>
+                                            </button>
+                                        );
+                                    })
+                                )}
+                            </div>
                         </div>
 
                         {/* Preview */}
