@@ -32,6 +32,8 @@ import CreateGoal from "./pages/CreateGoal";
 
 import Notifications from "./pages/Notifications";
 
+import GoalHistory from "./pages/GoalHistory";
+
 function Placeholder({ title }) {
   return (
     <div className="p-5">
@@ -159,6 +161,11 @@ export default function App() {
           <Route
             path="/goals/create"
             element={<CreateGoal />}
+          />
+
+          <Route
+            path="/goals/history"
+            element={<GoalHistory />}
           />
 
         </Route>
