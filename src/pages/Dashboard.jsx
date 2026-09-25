@@ -72,7 +72,9 @@ function ProgressRing({ percentage }) {
 
             <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-2xl font-bold tracking-tight text-white">
-                    {value.toFixed(0)}%
+                    {value < 1 && value > 0
+                            ? value.toFixed(2)
+                            : value.toFixed(0)}%
                 </span>
 
                 <span className="text-[11px] text-gray-400">
@@ -195,8 +197,8 @@ export default function Dashboard() {
 
     const totalContributions = Number(
         dashboard.total_contributions ??
-            dashboard.total_saved ??
-            0
+        dashboard.total_saved ??
+        0
     );
 
     const totalBorrowed = Number(
@@ -209,8 +211,8 @@ export default function Dashboard() {
 
     const availableSavings = Number(
         dashboard.available_savings ??
-            dashboard.total_saved ??
-            0
+        dashboard.total_saved ??
+        0
     );
 
     const remaining = Number(
@@ -221,9 +223,13 @@ export default function Dashboard() {
         goal?.target_amount || 0
     );
 
-    const progress = Number(
-        dashboard.progress_percentage || 0
-    );
+    const progress =
+        target > 0
+            ? Math.min(
+                (availableSavings / target) * 100,
+                100
+            )
+            : 0;
 
     const isGoalCompleted =
         progress >= 100 || remaining <= 0;
@@ -235,14 +241,20 @@ export default function Dashboard() {
     const estimatedMonths =
         dashboard.estimated_months_remaining !== null
             ? Number(
-                  dashboard.estimated_months_remaining
-              )
+                dashboard.estimated_months_remaining
+            )
             : null;
 
     const goalMembers = goal?.members || [];
 
     const contributions =
         dashboard.contributions || [];
+
+    console.log("DASHBOARD:", dashboard);
+    console.log("GOAL:", goal);
+    console.log("TARGET:", target);
+    console.log("AVAILABLE:", availableSavings);
+    console.log("PROGRESS:", progress);
 
     return (
         <div className="min-h-screen">
@@ -323,12 +335,11 @@ export default function Dashboard() {
                                                         key={
                                                             member.id
                                                         }
-                                                        className={`relative ${
-                                                            index >
+                                                        className={`relative ${index >
                                                             0
-                                                                ? "-ml-3"
-                                                                : ""
-                                                        }`}
+                                                            ? "-ml-3"
+                                                            : ""
+                                                            }`}
                                                     >
                                                         <div className="rounded-full bg-gray-950 p-1">
                                                             <ProfileAvatar
@@ -443,10 +454,8 @@ export default function Dashboard() {
 
                                     <p className="mt-1 text-xs text-gray-400">
                                         of{" "}
-                                        {formatCurrency(
-                                            target
-                                        )}{" "}
-                                        housing goal
+                                        {formatCurrency(target)}{" "}
+                                        {goal?.name || "savings goal"}
                                     </p>
 
                                     <div className="mt-4">
@@ -528,10 +537,10 @@ export default function Dashboard() {
                         label="Estimated time"
                         value={
                             estimatedMonths !==
-                            null
+                                null
                                 ? `${estimatedMonths.toFixed(
-                                      1
-                                  )} months`
+                                    1
+                                )} months`
                                 : "Not available"
                         }
                         description="At current pace"
@@ -615,21 +624,21 @@ export default function Dashboard() {
 
                     <div className="divide-y divide-gray-100">
                         {contributions.length >
-                        0 ? (
+                            0 ? (
                             contributions.map(
                                 (person) => {
                                     const amount =
                                         Number(
                                             person.amount ||
-                                                0
+                                            0
                                         );
 
                                     const percentage =
                                         totalContributions >
-                                        0
+                                            0
                                             ? (amount /
-                                                  totalContributions) *
-                                              100
+                                                totalContributions) *
+                                            100
                                             : 0;
 
                                     return (
@@ -714,7 +723,7 @@ export default function Dashboard() {
 
                     <div className="divide-y divide-gray-100">
                         {recentTransactions.length >
-                        0 ? (
+                            0 ? (
                             recentTransactions.map(
                                 (transaction) => (
                                     <button
@@ -732,7 +741,7 @@ export default function Dashboard() {
                                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100">
                                             <span className="material-symbols-rounded text-[20px] text-gray-700">
                                                 {transaction.transaction_type ===
-                                                "TRANSFER"
+                                                    "TRANSFER"
                                                     ? "swap_horiz"
                                                     : "payments"}
                                             </span>
@@ -815,13 +824,13 @@ export default function Dashboard() {
 
                             {outstandingBorrowings >
                                 0 && (
-                                <p className="mt-2 text-sm font-semibold text-gray-950">
-                                    {formatCurrency(
-                                        outstandingBorrowings
-                                    )}{" "}
-                                    outstanding
-                                </p>
-                            )}
+                                    <p className="mt-2 text-sm font-semibold text-gray-950">
+                                        {formatCurrency(
+                                            outstandingBorrowings
+                                        )}{" "}
+                                        outstanding
+                                    </p>
+                                )}
                         </div>
 
                         <button
