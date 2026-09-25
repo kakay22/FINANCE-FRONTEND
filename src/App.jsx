@@ -164,7 +164,7 @@ export default function App() {
           />
 
           <Route
-            path="/goals/history"
+            path="/goals"
             element={<GoalHistory />}
           />
 
